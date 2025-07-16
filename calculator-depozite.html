@@ -296,12 +296,13 @@
             return result;
         }
 
-        // Funcție pentru calcularea diferenței în zile între două date (inclusiv ambele capete)
+        // Funcție pentru calcularea diferenței în zile conform convenției bancare ACT/365-366
+        // EXCLUDE data deschiderii, INCLUDE data scadenței
         function calculateDaysDifference(startDate, endDate) {
             const start = new Date(startDate);
             const end = new Date(endDate);
             const diffTime = end.getTime() - start.getTime();
-            return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            return Math.floor(diffTime / (1000 * 60 * 60 * 24));
         }
 
         // Funcție pentru calcularea dobânzii proporționale pe ani
@@ -330,15 +331,19 @@
                 });
             } else {
                 // Dacă depozitul se întinde pe mai mulți ani
+                // Calculăm cu o zi după data de început pentru primul an
+                const adjustedStart = new Date(start);
+                adjustedStart.setDate(adjustedStart.getDate() + 1); // ziua după deschiderea depozitului
+                
                 for (let year = startYear; year <= endYear; year++) {
                     let yearStart, yearEnd;
                     
                     if (year === startYear) {
-                        // Pentru primul an: de la data de început până la sfârșitul anului
-                        yearStart = new Date(start);
+                        // Pentru primul an: de la ziua după deschidere până la sfârșitul anului
+                        yearStart = new Date(adjustedStart);
                         yearEnd = new Date(year, 11, 31); // 31 decembrie
                     } else if (year === endYear) {
-                        // Pentru ultimul an: de la începutul anului până la data de sfârșit
+                        // Pentru ultimul an: de la începutul anului până la data de scadență (inclusiv)
                         yearStart = new Date(year, 0, 1); // 1 ianuarie
                         yearEnd = new Date(end);
                     } else {
@@ -348,7 +353,25 @@
                     }
                     
                     if (yearStart <= yearEnd) {
-                        const daysInPeriod = calculateDaysDifference(yearStart, yearEnd);
+                        // Calculul specific pentru fiecare an
+                        let daysInPeriod;
+                        if (year === startYear && year === endYear) {
+                            // Caz special: depozitul în același an
+                            daysInPeriod = calculateDaysDifference(start, end);
+                        } else if (year === startYear) {
+                            // Pentru primul an: de la ziua după deschidere la sfârșitul anului (inclusiv ambele)
+                            const diffTime = yearEnd.getTime() - yearStart.getTime();
+                            daysInPeriod = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                        } else if (year === endYear) {
+                            // Pentru ultimul an: de la începutul anului la data scadenței (inclusiv)
+                            const diffTime = yearEnd.getTime() - yearStart.getTime();
+                            daysInPeriod = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                        } else {
+                            // Pentru anii din mijloc: întregul an
+                            const diffTime = yearEnd.getTime() - yearStart.getTime();
+                            daysInPeriod = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                        }
+                        
                         const calculationBase = getDaysInYear(year);
                         const yearInterest = amount * annualRate * (daysInPeriod / calculationBase);
                         
