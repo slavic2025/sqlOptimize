@@ -304,26 +304,67 @@
             return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         }
 
-        // Funcție pentru determinarea bazei de calcul (365 sau 366) în perioada depozitului
-        function getCalculationBase(startDate, endDate) {
+        // Funcție pentru calcularea dobânzii proporționale pe ani
+        function calculateProportionalInterest(amount, annualRate, startDate, endDate) {
             const start = new Date(startDate);
             const end = new Date(endDate);
             
             const startYear = start.getFullYear();
             const endYear = end.getFullYear();
             
-            // Verificăm dacă în perioada depozitului avem un an bisect
-            for (let year = startYear; year <= endYear; year++) {
-                if (isLeapYear(year)) {
-                    // Verificăm dacă perioada include efectiv ziua de 29 februarie
-                    const feb29 = new Date(year, 1, 29); // 29 februarie din anul bisect
-                    if (feb29 >= start && feb29 <= end) {
-                        return 366; // Folosim baza 366 dacă perioada include 29 februarie
+            let totalInterest = 0;
+            let calculationDetails = [];
+            
+            if (startYear === endYear) {
+                // Dacă depozitul este în același an
+                const daysInPeriod = calculateDaysDifference(start, end);
+                const calculationBase = getDaysInYear(startYear);
+                const interest = amount * annualRate * (daysInPeriod / calculationBase);
+                
+                totalInterest = interest;
+                calculationDetails.push({
+                    year: startYear,
+                    days: daysInPeriod,
+                    base: calculationBase,
+                    interest: interest
+                });
+            } else {
+                // Dacă depozitul se întinde pe mai mulți ani
+                for (let year = startYear; year <= endYear; year++) {
+                    const yearStart = year === startYear ? start : new Date(year, 0, 1);
+                    const yearEnd = year === endYear ? end : new Date(year + 1, 0, 0); // Ultima zi din an
+                    
+                    if (yearStart <= yearEnd) {
+                        const daysInPeriod = calculateDaysDifference(yearStart, yearEnd);
+                        const calculationBase = getDaysInYear(year);
+                        const yearInterest = amount * annualRate * (daysInPeriod / calculationBase);
+                        
+                        totalInterest += yearInterest;
+                        calculationDetails.push({
+                            year: year,
+                            days: daysInPeriod,
+                            base: calculationBase,
+                            interest: yearInterest
+                        });
                     }
                 }
             }
             
-            return 365; // Folosim baza 365 pentru toate celelalte cazuri
+            return {
+                totalInterest: totalInterest,
+                details: calculationDetails
+            };
+        }
+
+        // Funcție pentru formatarea detaliilor de calcul
+        function formatCalculationDetails(details) {
+            if (details.length === 1) {
+                return `${details[0].base} zile/an`;
+            } else {
+                return details.map(detail => 
+                    `${detail.year}: ${detail.days} zile ÷ ${detail.base}`
+                ).join(', ');
+            }
         }
 
         // Funcție pentru formatarea numerelor
@@ -389,19 +430,17 @@
             // Calcularea numărului de zile
             const daysCount = calculateDaysDifference(startDate, maturityDate);
             
-            // Determinarea bazei de calcul (365 sau 366) pentru perioada respectivă
-            const calculationBase = getCalculationBase(startDate, maturityDate);
-            
-            // Calcularea dobânzii
+            // Calcularea dobânzii proporționale
             const annualRate = interestRates[currency];
-            const interest = amount * annualRate * (daysCount / calculationBase);
+            const interestCalculation = calculateProportionalInterest(amount, annualRate, startDate, maturityDate);
+            const interest = interestCalculation.totalInterest;
             const totalAmount = amount + interest;
 
             // Afișarea rezultatelor
             document.getElementById('maturityDate').textContent = formatDate(maturityDate);
             document.getElementById('daysCount').textContent = `${daysCount} zile`;
             document.getElementById('interestRate').textContent = `${(annualRate * 100).toFixed(1)}% pe an`;
-            document.getElementById('calculationBase').textContent = `${calculationBase} zile/an`;
+            document.getElementById('calculationBase').textContent = formatCalculationDetails(interestCalculation.details);
             document.getElementById('interestAmount').textContent = `${formatNumber(interest)} ${currency}`;
             document.getElementById('totalAmount').textContent = `${formatNumber(totalAmount)} ${currency}`;
             
