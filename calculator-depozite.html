@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator Depozite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+            margin: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+            font-weight: 300;
+            font-size: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            background: #fafbfc;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            background: white;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .calculate-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .calculate-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #3498db;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-item {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .result-value {
+            font-size: 1.1rem;
+            color: #27ae60;
+            font-weight: 500;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .input-group .form-group {
+            flex: 1;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculator Depozite</h1>
+        
+        <form id="depositForm">
+            <div class="form-group">
+                <label for="amount">Suma depozitului</label>
+                <input type="number" id="amount" min="1" step="0.01" placeholder="Ex: 10000" required>
+                <div class="error" id="amountError">Suma trebuie să fie mai mare decât 0</div>
+            </div>
+
+            <div class="input-group">
+                <div class="form-group">
+                    <label for="currency">Valuta</label>
+                    <select id="currency" required>
+                        <option value="">Selectează valuta</option>
+                        <option value="RON">RON</option>
+                        <option value="EUR">EUR</option>
+                        <option value="USD">USD</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="term">Termen (luni)</label>
+                    <select id="term" required>
+                        <option value="">Selectează termenul</option>
+                        <option value="1">1 lună</option>
+                        <option value="3">3 luni</option>
+                        <option value="6">6 luni</option>
+                        <option value="12">12 luni</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="startDate">Data deschiderii depozitului</label>
+                <input type="date" id="startDate" required>
+                <div class="error" id="dateError">Selectează o dată validă</div>
+            </div>
+
+            <div class="button-container">
+                <button type="submit" class="calculate-btn">Calculează Depozitul</button>
+            </div>
+        </form>
+
+        <div class="results" id="results">
+            <div class="result-item">
+                <div class="result-label">Data scadenței:</div>
+                <div class="result-value" id="maturityDate">-</div>
+            </div>
+            
+            <div class="result-item">
+                <div class="result-label">Numărul de zile:</div>
+                <div class="result-value" id="daysCount">-</div>
+            </div>
+            
+            <div class="result-item">
+                <div class="result-label">Rata dobânzii anuale:</div>
+                <div class="result-value" id="interestRate">-</div>
+            </div>
+            
+            <div class="result-item">
+                <div class="result-label">Dobânda calculată:</div>
+                <div class="result-value" id="interestAmount">-</div>
+            </div>
+            
+            <div class="result-item">
+                <div class="result-label">Suma totală la scadență:</div>
+                <div class="result-value" id="totalAmount">-</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ratele dobânzii pentru fiecare valută
+        const interestRates = {
+            'RON': 0.05, // 5%
+            'EUR': 0.02, // 2%
+            'USD': 0.03  // 3%
+        };
+
+        // Funcție pentru verificarea anului bisect
+        function isLeapYear(year) {
+            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        }
+
+        // Funcție pentru calcularea zilelor dintr-un an
+        function getDaysInYear(year) {
+            return isLeapYear(year) ? 366 : 365;
+        }
+
+        // Funcție pentru adăugarea lunilor la o dată
+        function addMonths(date, months) {
+            const result = new Date(date);
+            const targetMonth = result.getMonth() + months;
+            const targetYear = result.getFullYear() + Math.floor(targetMonth / 12);
+            const finalMonth = targetMonth % 12;
+            
+            result.setFullYear(targetYear);
+            result.setMonth(finalMonth);
+            
+            // Verificăm dacă ziua este validă în luna țintă
+            const lastDayOfTargetMonth = new Date(targetYear, finalMonth + 1, 0).getDate();
+            if (result.getDate() > lastDayOfTargetMonth) {
+                result.setDate(lastDayOfTargetMonth);
+            }
+            
+            return result;
+        }
+
+        // Funcție pentru calcularea diferenței în zile între două date
+        function calculateDaysDifference(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = end.getTime() - start.getTime();
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        // Funcție pentru calcularea zilelor medii în intervalul de timp
+        function getAverageDaysInPeriod(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            const startYear = start.getFullYear();
+            const endYear = end.getFullYear();
+            
+            if (startYear === endYear) {
+                // Dacă depozitul este în același an
+                return getDaysInYear(startYear);
+            } else {
+                // Dacă depozitul se întinde pe mai mulți ani, calculăm media ponderată
+                let totalDays = 0;
+                let weightedDays = 0;
+                
+                for (let year = startYear; year <= endYear; year++) {
+                    const yearStart = year === startYear ? start : new Date(year, 0, 1);
+                    const yearEnd = year === endYear ? end : new Date(year, 11, 31);
+                    
+                    if (yearStart <= yearEnd) {
+                        const daysInPeriod = calculateDaysDifference(yearStart, yearEnd) + 1;
+                        const daysInYear = getDaysInYear(year);
+                        
+                        totalDays += daysInPeriod;
+                        weightedDays += daysInPeriod * daysInYear;
+                    }
+                }
+                
+                return Math.round(weightedDays / totalDays);
+            }
+        }
+
+        // Funcție pentru formatarea numerelor
+        function formatNumber(number, decimals = 2) {
+            return new Intl.NumberFormat('ro-RO', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(number);
+        }
+
+        // Funcție pentru formatarea datelor
+        function formatDate(date) {
+            return new Intl.DateTimeFormat('ro-RO', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }).format(new Date(date));
+        }
+
+        // Funcție pentru validarea formularului
+        function validateForm() {
+            let isValid = true;
+            
+            // Resetarea erorilor
+            document.querySelectorAll('.error').forEach(error => {
+                error.classList.remove('show');
+            });
+
+            // Validarea sumei
+            const amount = parseFloat(document.getElementById('amount').value);
+            if (!amount || amount <= 0) {
+                document.getElementById('amountError').classList.add('show');
+                isValid = false;
+            }
+
+            // Validarea datei
+            const startDate = document.getElementById('startDate').value;
+            if (!startDate) {
+                document.getElementById('dateError').classList.add('show');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // Funcția principală de calcul
+        function calculateDeposit(event) {
+            event.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+
+            // Obținerea valorilor din formular
+            const amount = parseFloat(document.getElementById('amount').value);
+            const currency = document.getElementById('currency').value;
+            const termMonths = parseInt(document.getElementById('term').value);
+            const startDate = new Date(document.getElementById('startDate').value);
+            
+            // Calcularea datei de scadență
+            const maturityDate = addMonths(startDate, termMonths);
+            
+            // Calcularea numărului de zile
+            const daysCount = calculateDaysDifference(startDate, maturityDate);
+            
+            // Calcularea zilelor în an pentru perioada respectivă
+            const daysInYear = getAverageDaysInPeriod(startDate, maturityDate);
+            
+            // Calcularea dobânzii
+            const annualRate = interestRates[currency];
+            const interest = amount * annualRate * (daysCount / daysInYear);
+            const totalAmount = amount + interest;
+
+            // Afișarea rezultatelor
+            document.getElementById('maturityDate').textContent = formatDate(maturityDate);
+            document.getElementById('daysCount').textContent = `${daysCount} zile`;
+            document.getElementById('interestRate').textContent = `${(annualRate * 100).toFixed(1)}% pe an`;
+            document.getElementById('interestAmount').textContent = `${formatNumber(interest)} ${currency}`;
+            document.getElementById('totalAmount').textContent = `${formatNumber(totalAmount)} ${currency}`;
+            
+            // Afișarea secțiunii de rezultate
+            document.getElementById('results').classList.add('show');
+        }
+
+        // Setarea datei curente ca valoare implicită
+        document.getElementById('startDate').valueAsDate = new Date();
+
+        // Adăugarea event listener-ului pentru formular
+        document.getElementById('depositForm').addEventListener('submit', calculateDeposit);
+
+        // Ascunderea rezultatelor când se schimbă inputurile
+        document.querySelectorAll('input, select').forEach(element => {
+            element.addEventListener('input', () => {
+                document.getElementById('results').classList.remove('show');
+            });
+        });
+    </script>
+</body>
+</html>
