@@ -331,19 +331,18 @@
                 });
             } else {
                 // Dacă depozitul se întinde pe mai mulți ani
-                // Calculăm cu o zi după data de început pentru primul an
-                const adjustedStart = new Date(start);
-                adjustedStart.setDate(adjustedStart.getDate() + 1); // ziua după deschiderea depozitului
+                // Calculăm împărțirea logică pe ani calendaristici
+                const totalDaysInPeriod = calculateDaysDifference(start, end);
                 
                 for (let year = startYear; year <= endYear; year++) {
                     let yearStart, yearEnd;
                     
                     if (year === startYear) {
-                        // Pentru primul an: de la ziua după deschidere până la sfârșitul anului
-                        yearStart = new Date(adjustedStart);
+                        // Pentru primul an: de la data de început la sfârșitul anului
+                        yearStart = new Date(start);
                         yearEnd = new Date(year, 11, 31); // 31 decembrie
                     } else if (year === endYear) {
-                        // Pentru ultimul an: de la începutul anului până la data de scadență (inclusiv)
+                        // Pentru ultimul an: de la începutul anului la data de scadență  
                         yearStart = new Date(year, 0, 1); // 1 ianuarie
                         yearEnd = new Date(end);
                     } else {
@@ -353,19 +352,16 @@
                     }
                     
                     if (yearStart <= yearEnd) {
-                        // Calculul specific pentru fiecare an
                         let daysInPeriod;
-                        if (year === startYear && year === endYear) {
-                            // Caz special: depozitul în același an
-                            daysInPeriod = calculateDaysDifference(start, end);
-                        } else if (year === startYear) {
-                            // Pentru primul an: de la ziua după deschidere la sfârșitul anului (inclusiv ambele)
+                        
+                        if (year === startYear) {
+                            // Pentru primul an: calculăm zilele calendaristice
                             const diffTime = yearEnd.getTime() - yearStart.getTime();
                             daysInPeriod = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
                         } else if (year === endYear) {
-                            // Pentru ultimul an: de la începutul anului la data scadenței (inclusiv)
-                            const diffTime = yearEnd.getTime() - yearStart.getTime();
-                            daysInPeriod = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                            // Pentru ultimul an: ajustăm pentru a obține totalul corect
+                            const firstYearDays = Math.floor((new Date(startYear, 11, 31).getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                            daysInPeriod = totalDaysInPeriod - firstYearDays;
                         } else {
                             // Pentru anii din mijloc: întregul an
                             const diffTime = yearEnd.getTime() - yearStart.getTime();
