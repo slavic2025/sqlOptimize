@@ -1,0 +1,24 @@
+{
+  "dev": {
+    "server": "localhost\\SQLEXPRESS",
+    "database": "MyDatabase_Dev",
+    "username": "dev_user",
+    "password": "dev_password"
+  },
+  "test": {
+    "server": "test-server.example.com",
+    "database": "MyDatabase_Test",
+    "username": "test_user",
+    "password": "test_password"
+  },
+  "prod": {
+    "server": "prod-server.example.com",
+    "database": "MyDatabase_Prod",
+    "username": "prod_user",
+    "password": "prod_password"
+  },
+  "local_trusted": {
+    "server": "localhost",
+    "database": "MyDatabase"
+  }
+}
